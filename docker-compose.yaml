@@ -1,0 +1,52 @@
+services:
+  webserver:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    restart: always
+    depends_on:
+      - mariadb
+    ports:
+      - "80:80"
+      - 443:443
+    environment:
+      DB_HOST: mariadb
+      DB_USER: docker
+      DB_PASSWORD: docker
+      DB_NAME: docker
+    volumes:
+      - ./web:/var/www/html
+      - ./config/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+
+  mariadb:
+    image: mariadb:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: docker
+      MYSQL_DATABASE: docker
+      MYSQL_USER: docker
+      MYSQL_PASSWORD: docker
+    volumes:
+      - docker-webserver-tools:/var/lib/mysql
+
+  phpmyadmin:
+    depends_on:
+      - mariadb
+    image: phpmyadmin/phpmyadmin:latest
+    restart: always
+    ports:
+      - 7301:80
+    environment:
+      PMA_HOST: mariadb
+      MYSQL_ROOT_PASSWORD: docker
+      MYSQL_USERNAME: docker
+      UPLOAD_LIMIT: 300M
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+        - "1025:1025"
+        - "8025:8025"
+
+volumes:
+  docker-webserver-tools:
